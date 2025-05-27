@@ -1,29 +1,32 @@
 import { subscribe, unsubscribe } from './resources/API';
-import ReactDOM from 'react-dom';
 import { useState, useEffect } from 'react';
 
-function getMessage(sourceId: string) {
-    const [lastMessage, setLastMessage] = useState('-1');
+interface EffectsProps {
+    sourceId: string;
+}
+
+export function Effects(props: EffectsProps) {
+    const { sourceId } = props;
+    const [lastMessage, setLastMessage] = useState<string | number>('-1'); // или другой тип, если нужно
 
     useEffect(() => {
+        // Можно оставить setLastMessage('-1'), если требуется сброс при каждом изменении sourceId
         setLastMessage('-1');
 
-        const handleNewMessage = function (message: any) {
+        const handleNewMessage = (message: string | number) => {
             setLastMessage(message);
         };
 
-        subscribe(sourceId, handleNewMessage);
+        if (sourceId) {
+            subscribe(sourceId, handleNewMessage);
+        }
 
         return () => {
-            unsubscribe(sourceId, handleNewMessage);
+            if (sourceId) {
+                unsubscribe(sourceId, handleNewMessage);
+            }
         };
     }, [sourceId]);
-
-    return { sourceId, lastMessage };
-}
-
-export function Effects(props: { sourceId: string }) {
-    const { sourceId, lastMessage } = getMessage(props.sourceId);
 
     return (
         <div>
@@ -31,8 +34,3 @@ export function Effects(props: { sourceId: string }) {
         </div>
     );
 }
-
-// ReactDOM.render(
-//      <Effects sourceId="-1"/>,
-//      document.getElementById('root')
-//    );
